@@ -48,7 +48,7 @@ This project can:
 4. Create a `.env` file with the card information used by the purchase flow:
 
    ```env
-   CVC=123
+   CVV=123
    CARD_ABREVIATION=*1234
    ```
 
