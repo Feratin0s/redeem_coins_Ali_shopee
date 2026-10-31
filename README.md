@@ -85,9 +85,17 @@ To uninstall the ADB systemd service installed by the script, run:
 
 ```bash
 sudo systemctl disable --now adb-server
+```
+```bash
 sudo rm /etc/systemd/system/adb-server.service
+```
+```bash
 sudo systemctl daemon-reload
+```
+```bash
 sudo systemctl reset-failed
+```
+```bash
 adb kill-server
 ```
 
