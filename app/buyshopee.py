@@ -4,6 +4,7 @@ import re
 import xml.etree.ElementTree as ET
 import os
 from dotenv import load_dotenv
+from app.debug import debug
 
 load_dotenv()
 
@@ -51,52 +52,67 @@ def buy(d):
         #xml = d.dump_hierarchy()
         #print(xml)
     except Exception as e:
-        logger.exception("Erro ao efetuar compra na Shopee - {e}")
+        logger.exception("Erro ao efetuar compra na Shopee")
+        debug(d, nome="buy_error")
+        raise
 
 def brl_to_float(txt: str) -> float:
     # "R$1.234,56" -> 1234.56
-    return float(txt.replace("R$", "").replace(".", "").replace(",", ".").strip())
+    try:
+        return float(txt.replace("R$", "").replace(".", "").replace(",", ".").strip())
+    except Exception:
+        logger.exception("Erro ao converter valor em reais")
+        raise
 
 def parse_bounds(b: str):
     # "[121,1209][806,1253]" -> centro (x, y)
-    x1, y1, x2, y2 = map(int, re.findall(r"\d+", b))
-    return (x1 + x2) // 2, (y1 + y2) // 2
+    try:
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", b))
+        return (x1 + x2) // 2, (y1 + y2) // 2
+    except Exception:
+        logger.exception("Erro ao interpretar bounds")
+        raise
 
 def installments(d, tolerancia=0.05, max_parcelas=None):
-    padrao = re.compile(r"^(\d+)x\s*R\$\s*([\d.,]+)$")
+    try:
+        padrao = re.compile(r"^(\d+)x\s*R\$\s*([\d.,]+)$")
 
-    root = ET.fromstring(d.dump_hierarchy())   # 1 única chamada ao celular
+        root = ET.fromstring(d.dump_hierarchy())   # 1 única chamada ao celular
 
-    opcoes = []  # (parcelas, valor_parcela, (x, y))
-    for node in root.iter("node"):
-        texto = (node.get("text") or "").strip()
-        m = padrao.match(texto)
-        if m:
-            opcoes.append((
-                int(m.group(1)),
-                brl_to_float(m.group(2)),
-                parse_bounds(node.get("bounds")),
-            ))
+        opcoes = []  # (parcelas, valor_parcela, (x, y))
+        for node in root.iter("node"):
+            texto = (node.get("text") or "").strip()
+            m = padrao.match(texto)
+            if m:
+                opcoes.append((
+                    int(m.group(1)),
+                    brl_to_float(m.group(2)),
+                    parse_bounds(node.get("bounds")),
+                ))
 
-    a_vista = next(((v, pos) for p, v, pos in opcoes if p == 1), None)
-    if a_vista is None:
-        logger.warning("Opção 1x não encontrada")
-        return None
-    valor_a_vista, pos_a_vista = a_vista
+        a_vista = next(((v, pos) for p, v, pos in opcoes if p == 1), None)
+        if a_vista is None:
+            logger.warning("Opção 1x não encontrada")
+            return None
+        valor_a_vista, pos_a_vista = a_vista
 
-    sem_juros = [
-        (p, pos) for p, v, pos in opcoes
-        if p > 1
-        and abs(p * v - valor_a_vista) <= tolerancia
-        and (max_parcelas is None or p <= max_parcelas)
-    ]
+        sem_juros = [
+            (p, pos) for p, v, pos in opcoes
+            if p > 1
+            and abs(p * v - valor_a_vista) <= tolerancia
+            and (max_parcelas is None or p <= max_parcelas)
+        ]
 
-    if sem_juros:
-        p, pos = max(sem_juros, key=lambda x: x[0])
-        logger.info(f"Clicando em {p}x sem juros")
-        d.click(*pos)
-        return p
+        if sem_juros:
+            p, pos = max(sem_juros, key=lambda x: x[0])
+            logger.info(f"Clicando em {p}x sem juros")
+            d.click(*pos)
+            return p
 
-    logger.info("Nenhuma opção sem juros; selecionando à vista (1x)")
-    d.click(*pos_a_vista)
-    return 1
+        logger.info("Nenhuma opção sem juros; selecionando à vista (1x)")
+        d.click(*pos_a_vista)
+        return 1
+    except Exception:
+        logger.exception("Erro ao selecionar parcelamento")
+        debug(d, nome="installments_error")
+        raise
