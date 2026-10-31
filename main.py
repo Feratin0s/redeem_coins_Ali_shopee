@@ -1,11 +1,11 @@
 #uvicorn main:app --host 0.0.0.0 --port 8000
-
 from fastapi import FastAPI, Request, HTTPException, BackgroundTasks, Query, Header
 import uiautomator2 as u2
-from coinsAli import redeem
-from buyshopee import buy
+from app.coinsAli import redeem
+from app.buyshopee import buy
 import logging
 import time
+from app.coinsshopee import redeem_shopee
 
 d = u2.connect()
 
@@ -94,6 +94,17 @@ async def shopee_buy_webhook(request: Request, background_tasks: BackgroundTasks
 async def shopee_redeem_coin_webhook(request: Request, background_tasks: BackgroundTasks):
     background_tasks.add_task(execute_coin_shopee)
     return { 'status': 'success'}
+
+@app.post("/get/xml")
+async def shopee_redeem_coin_webhook(request: Request, background_tasks: BackgroundTasks):
+    background_tasks.add_task(get_xml)
+    return { 'status': 'success'}
+
+def get_xml():
+    xml = d.dump_hierarchy()
+    print(xml)
+    d.screenshot("tela.png")
+
 
 @app.get("/health")
 async def health():
