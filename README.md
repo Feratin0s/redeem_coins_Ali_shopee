@@ -81,6 +81,16 @@ chmod +x install-adb-service.sh
 sudo ./install-adb-service.sh
 ```
 
+To uninstall the ADB systemd service installed by the script, run:
+
+```bash
+sudo systemctl disable --now adb-server
+sudo rm /etc/systemd/system/adb-server.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+adb kill-server
+```
+
 The script is safe to run more than once.
 
 ## Available endpoints
