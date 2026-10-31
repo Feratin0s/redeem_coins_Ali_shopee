@@ -64,12 +64,24 @@ This project can:
 
 You can also run the project with Docker Compose.
 
+
 ```bash
 docker compose up --build
 ```
 
 This starts the FastAPI app on port `8000` and exposes the USB device to the container so ADB can communicate with the phone.
 If using docker start on port `3671`
+
+### ADB Server (systemd)
+
+The container connects to an ADB server running on the host. To install it as a service (starts on boot and restarts automatically):
+
+```bash
+chmod +x install-adb-service.sh
+sudo ./install-adb-service.sh
+```
+
+The script is safe to run more than once.
 
 ## Available endpoints
 

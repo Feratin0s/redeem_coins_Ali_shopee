@@ -4,14 +4,17 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: adb-control-xiaomi
-    privileged: true
+    restart: unless-stopped
     working_dir: /app
     environment:
       PYTHONUNBUFFERED: "1"
+      ANDROID_ADB_SERVER_HOST: host.docker.internal
+      ANDROID_ADB_SERVER_PORT: "5037"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "3671:8000"
     volumes:
       - .:/app
       - ./.env:/app/.env:ro
-      - /dev/bus/usb:/dev/bus/usb
-    command: sh -c "adb devices && uvicorn main:app --host 0.0.0.0 --port 8000"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
