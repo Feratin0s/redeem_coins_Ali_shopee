@@ -52,13 +52,24 @@ This project can:
    CARD_ABREVIATION=*1234
    ```
 
-   These values are only examples; use your own valid data if needed for the automation flow.
+   These values are examples only; replace them with your own valid details when required by the automation flow.
 
 5. Start the API:
 
    ```bash
    uvicorn main:app --host 0.0.0.0 --port 8000
    ```
+
+### Docker
+
+You can also run the project with Docker Compose.
+
+```bash
+docker compose up --build
+```
+
+This starts the FastAPI app on port `8000` and exposes the USB device to the container so ADB can communicate with the phone.
+If using docker start on port `3671`
 
 ## Available endpoints
 
