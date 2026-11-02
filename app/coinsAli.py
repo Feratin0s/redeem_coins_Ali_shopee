@@ -10,12 +10,13 @@ PKG = "com.alibaba.aliexpresshd"
 def redeem(d):
     try:
         d.app_start("com.alibaba.aliexpresshd") #Aliexpress
+        time.sleep(4)
         fechar_popup_webview(d)
         d(text="Moedas").wait(timeout=10)
         d(text="Moedas").click()
-        time.sleep(10)
+        time.sleep(20)
         d.click(850, 1040)
-        time.sleep(3)
+        time.sleep(10)
         d.press("home")
         #xml = d.dump_hierarchy()
         #print(xml)
